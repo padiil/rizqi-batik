@@ -48,16 +48,26 @@ export const belanjaPage = (req, res) => __awaiter(void 0, void 0, void 0, funct
     try {
         const page = parseInt(req.query.page, 10) || 1;
         const perPage = 16;
-        // Ambil total produk dari database
-        const totalProducts = yield Product.countDocuments();
+        const searchQuery = req.query.search || ""; // Ambil query pencarian
+        // Buat filter pencarian berdasarkan title dan shortDescription
+        const searchFilter = searchQuery
+            ? {
+                $or: [
+                    { title: { $regex: searchQuery, $options: "i" } }, // Pencarian berdasarkan title
+                    { shortDescription: { $regex: searchQuery, $options: "i" } }, // Pencarian berdasarkan shortDescription
+                ],
+            }
+            : {};
+        // Hitung total produk berdasarkan filter pencarian
+        const totalProducts = yield Product.countDocuments(searchFilter);
         const startIndex = (page - 1) * perPage;
         const endIndex = Math.min(page * perPage, totalProducts);
-        // Ambil produk sesuai dengan halaman
-        const currentProducts = yield Product.find()
+        // Ambil produk sesuai dengan filter pencarian dan pagination
+        const currentProducts = yield Product.find(searchFilter)
             .skip(startIndex)
             .limit(perPage);
         const totalPages = Math.ceil(totalProducts / perPage);
-        // Render halaman belanja dengan data produk
+        // Render halaman belanja dengan data produk dan query pencarian
         res.render("pages/belanja/belanja.ejs", {
             title: "Belanja",
             katalogView: currentProducts,
@@ -66,6 +76,7 @@ export const belanjaPage = (req, res) => __awaiter(void 0, void 0, void 0, funct
             startIndex: startIndex + 1,
             endIndex: endIndex,
             totalProducts: totalProducts,
+            searchQuery, // Kirimkan searchQuery agar bisa digunakan di EJS
         });
     }
     catch (error) {
@@ -78,11 +89,13 @@ export const kontakPage = (req, res) => {
         title: "Kontak",
     });
 };
+// Menampilkan halaman keranjang
 export const keranjangPage = (req, res) => {
     res.render("pages/keranjang/keranjang.ejs", {
         title: "Keranjang",
     });
 };
+// Menampilkan halaman detail produk
 export const productDetailPage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const productId = req.params.id;
@@ -231,7 +244,7 @@ export const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, functi
             preorder: isPreorderFlag,
             image: productImagePath,
         });
-        res.redirect("/admin/produk"); // Redirect to product list after creation
+        res.send("<script>alert('Produk berhasil ditambahkan!'); window.location.href='/admin/dashboard';</script>"); // Redirect to product list after creation with alert
     }
     catch (error) {
         console.error("Error adding product:", error);
@@ -260,10 +273,7 @@ export const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, fun
             res.status(404).json({ message: "Product not found" });
             return;
         }
-        res.status(200).json({
-            message: "Product updated successfully",
-            product: updatedProduct,
-        });
+        res.send("<script>alert('Product updated successfully!'); window.location.href='/admin/dashboard';</script>"); // Redirect to dashboard with alert
     }
     catch (error) {
         console.error("Error updating product:", error);
@@ -277,47 +287,36 @@ const __dirname = dirname(__filename);
 export const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const productId = req.params.id;
     try {
-        // Find the product by ID
+        // Cari produk berdasarkan ID
         const product = yield Product.findById(productId);
         if (!product) {
-            // If no product found, return a 404 error
             res.status(404).json({ success: false, message: "Product not found" });
             return;
         }
-        // If the product has an image, attempt to delete it
+        // Hapus gambar jika ada
         if (product.image) {
-            // Fix path by ensuring 'uploads' isn't duplicated
             const imagePath = path.join(__dirname, "..", "..", "public", product.image);
-            // Log the path for debugging
             console.log("Attempting to delete image at:", imagePath);
-            // Check if the file exists before trying to delete it
             if (fs.existsSync(imagePath)) {
-                fs.unlink(imagePath, (err) => {
-                    if (err) {
-                        console.error("Error deleting the image file:", err);
-                    }
-                    else {
-                        console.log("Image deleted successfully");
-                    }
-                });
+                fs.unlinkSync(imagePath); // Menggunakan unlinkSync untuk memastikan sinkronisasi
+                console.log("Image deleted successfully");
             }
             else {
                 console.log("Image file not found at path:", imagePath);
             }
         }
-        // Attempt to delete the product from the database
+        // Hapus produk dari database
         const deletedProduct = yield Product.findByIdAndDelete(productId);
         if (!deletedProduct) {
-            // Log if the deletion fails
-            console.error("Product not found for deletion:", productId);
             res.status(404).json({ success: false, message: "Product not found" });
         }
         else {
-            res.json({ success: true, message: "Product deleted successfully" });
+            res
+                .status(200)
+                .json({ success: true, message: "Product deleted successfully" });
         }
     }
     catch (err) {
-        // Log the error in detail
         console.error("Error deleting product:", err);
         res.status(500).json({
             success: false,
@@ -333,17 +332,14 @@ export const adminLoginPage = (req, res) => {
 };
 export const loginAdmin = (req, res) => {
     const { username, password } = req.body;
-    // Validasi login
     if (username === "admin" && password === "password") {
-        // Set session
         req.session.user = { id: "1", username };
         res.redirect("/admin/dashboard");
     }
     else {
-        res.status(401).render("pages/admin/login/login.ejs", {
-            title: "Login Admin",
-            errorMessage: "Username atau password salah.",
-        });
+        res
+            .status(401)
+            .send("<script>alert('Username atau password salah. Silakan coba lagi.'); window.location.href='/admin/login';</script>");
     }
 };
 export const logoutAdmin = (req, res) => {
