@@ -1,0 +1,29 @@
+# Node.js dependencies
+/node_modules/
+
+# TypeScript generated files
+/**/*.tsbuildinfo
+
+# Logs
+/logs
+*.log
+
+# Dependency directories
+/npm-debug.log*
+/yarn-debug.log*
+/yarn-error.log*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor config files
+.idea/
+.vscode/
+
+# Environment files
+.env
+
+# npm package-lock files
+package-lock.json
+yarn.lock

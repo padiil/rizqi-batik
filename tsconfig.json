@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "ESNext", // Gunakan ESNext untuk mendukung import/export
+    "moduleResolution": "node", // Pastikan modul-resolve bekerja dengan benar
+    "outDir": "./dist", // Folder output setelah proses build
+    "rootDir": "./src", // Folder input source code TypeScript
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "baseUrl": "./src", // Untuk paths alias, jika digunakan
+    "paths": {
+      "@/*": ["*"]
+    },
+    "allowJs": true, // Izinkan JavaScript jika diperlukan
+    "resolveJsonModule": true, // Izinkan import file JSON
+    "isolatedModules": true, // Pastikan setiap file dapat berdiri sendiri
+    "typeRoots": ["node_modules/@types", "types"],
+    "forceConsistentCasingInFileNames": true,
+  },
+  "ts-node": {
+    "esm": true
+  },
+  "include": ["src/**/*.ts"], // Pastikan semua file .ts di dalam src diproses
+  "exclude": ["node_modules"] // Jangan sertakan node_modules
+}

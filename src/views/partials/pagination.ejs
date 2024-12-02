@@ -1,0 +1,19 @@
+<div class="flex justify-center space-x-2 my-6">
+  <% if (currentPage > 1) { %>
+  <a href="/belanja?page=<%= currentPage - 1 %>&search=<%= searchQuery %>" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+    Prev
+  </a>
+  <% } %>
+
+  <% for (let i = 1; i <= totalPages; i++) { %>
+  <a href="/belanja?page=<%= i %>&search=<%= searchQuery %>" class="px-4 py-2 <%= currentPage === i ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700' %> rounded-lg hover:bg-gray-300">
+    <%= i %>
+  </a>
+  <% } %>
+
+  <% if (currentPage < totalPages) { %>
+  <a href="/belanja?page=<%= currentPage + 1 %>&search=<%= searchQuery %>" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+    Next
+  </a>
+  <% } %>
+</div>

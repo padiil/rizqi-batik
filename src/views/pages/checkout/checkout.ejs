@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('../../partials/head.ejs') %>
+  <body>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const productList = document.getElementById("product-list");
+        const subtotalElement = document.getElementById("subtotal");
+        const totalElement = document.getElementById("total");
+
+        const cartData = JSON.parse(localStorage.getItem("cart")) || [];
+
+        let subtotal = 0;
+
+        cartData.forEach((item) => {
+          const productPrice = parseInt(
+            item.productPrice.replace(/[^0-9]/g, "")
+          );
+          const quantity = item.quantity || 1;
+          const itemSubtotal = productPrice * quantity;
+
+          subtotal += itemSubtotal;
+
+          const productRow = `
+          <div class="flex justify-between">
+            <span>${item.productName} x ${quantity}</span>
+            <span>Rp. ${itemSubtotal.toLocaleString()}</span>
+          </div>
+        `;
+          productList.insertAdjacentHTML("beforeend", productRow);
+        });
+
+        subtotalElement.textContent = `Rp. ${subtotal.toLocaleString()}`;
+        totalElement.textContent = `Rp. ${subtotal.toLocaleString()}`;
+      });
+    </script>
+
+    <!-- navbar -->
+    <%- include('../../partials/navbar.ejs') %>
+
+    <div>
+      <!-- banner -->
+      <%- include('../../partials/banner.ejs') %>
+
+      <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+          <div class="lg:col-span-2">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">
+              Rincian Tagihan
+            </h2>
+            <form class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-gray-700" for="first-name">
+                    Nama Depan
+                  </label>
+                  <input
+                    class="w-full border border-gray-300 rounded p-2"
+                    id="first-name"
+                    type="text"
+                  />
+                </div>
+                <div>
+                  <label class="block text-gray-700" for="last-name">
+                    Nama Belakang
+                  </label>
+                  <input
+                    class="w-full border border-gray-300 rounded p-2"
+                    id="last-name"
+                    type="text"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block text-gray-700" for="company">
+                  Nama Perusahaan (Opsional)
+                </label>
+                <input
+                  class="w-full border border-gray-300 rounded p-2"
+                  id="company"
+                  type="text"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700" for="country">
+                  Negara
+                </label>
+                <select
+                  class="w-full border border-gray-300 rounded p-2"
+                  id="country"
+                >
+                  <option>Indonesia</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-gray-700" for="address">
+                  Alamat Pengiriman
+                </label>
+                <input
+                  class="w-full border border-gray-300 rounded p-2"
+                  id="address"
+                  type="text"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700" for="city"> Kota </label>
+                <input
+                  class="w-full border border-gray-300 rounded p-2"
+                  id="city"
+                  type="text"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700" for="province">
+                  Provinsi
+                </label>
+                <select
+                  class="w-full border border-gray-300 rounded p-2"
+                  id="province"
+                >
+                  <option>Jawa Barat</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-gray-700" for="postal-code">
+                  Kode POS
+                </label>
+                <input
+                  class="w-full border border-gray-300 rounded p-2"
+                  id="postal-code"
+                  type="text"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700" for="phone">
+                  No. Telepon
+                </label>
+                <input
+                  class="w-full border border-gray-300 rounded p-2"
+                  id="phone"
+                  type="text"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700" for="email">
+                  Alamat Email
+                </label>
+                <input
+                  class="w-full border border-gray-300 rounded p-2"
+                  id="email"
+                  type="email"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700" for="additional-info">
+                  Informasi Tambahan
+                </label>
+                <textarea
+                  class="w-full border border-gray-300 rounded p-2"
+                  id="additional-info"
+                ></textarea>
+              </div>
+            </form>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Produk</h2>
+            <div class="bg-white p-4 rounded shadow">
+              <div id="product-list" class="space-y-2">
+                <!-- Renderan produk -->
+              </div>
+              <div class="flex justify-between mb-2">
+                <span> Subtotal </span>
+                <span id="subtotal" class="text-gray-800"> Rp. 0 </span>
+              </div>
+              <div class="flex justify-between font-bold text-lg">
+                <span> Total </span>
+                <span id="total" class="text-yellow-500"> Rp. 0 </span>
+              </div>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mt-8 mb-4">Bayar</h2>
+            <div class="bg-white p-4 rounded shadow space-y-4">
+              <a
+                class="w-full bg-green-500 text-white py-2 rounded text-center block"
+                href="https://wa.me/6282117973586?text=Halo,%20saya%20ingin%20melakukan%20pemesanan%20Tas%20Batik%20Etnik%20seharga%20Rp.%20150.000"
+              >
+                <i class="fab fa-whatsapp"> </i>
+                Lakukan Pemesanan via WhatsApp
+              </a>
+            </div>
+            <p class="text-gray-600 text-sm mt-4">
+              Data pribadi Anda akan digunakan untuk memproses pesanan ini dan
+              untuk pengalaman belanja yang lebih baik sesuai dengan
+              <a class="text-yellow-500" href="#"> Kebijakan Privasi </a>
+              .
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <%- include('../../partials/footer.ejs') %>
+  </body>
+</html>

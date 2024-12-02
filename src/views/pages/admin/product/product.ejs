@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="id">
+<%- include('../../../partials/head.ejs') %>
+
+<body class="bg-gray-100 min-h-screen">
+  <!-- Sidebar -->
+  <div class="flex flex-col md:flex-row">
+    <%- include('../../../partials/admin/sidebar.ejs') %>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-6">
+
+      <!-- Cards Overview -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Produk -->
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-semibold">Total Produk</h3>
+            <p class="text-2xl font-bold"><%= totalProducts %></p>
+          </div>
+          <i class="fas fa-boxes text-4xl text-gray-700"></i>
+        </div>
+
+        <!-- Ready Stock Produk -->
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-semibold">Produk Siap Jual</h3>
+            <p class="text-2xl font-bold"><%= readyStockProducts %></p>
+          </div>
+          <i class="fas fa-check-circle text-4xl text-gray-700"></i>
+        </div>
+
+        <!-- Preorder Produk -->
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-semibold">Produk Preorder</h3>
+            <p class="text-2xl font-bold"><%= preorderProducts %></p>
+          </div>
+          <i class="fas fa-box text-4xl text-gray-700"></i>
+        </div>
+      </div>
+
+
+      <h1 class="text-3xl font-bold mb-6 text-gray-800">Manage Products</h1>
+
+      <!-- Table of Products -->
+      <div class="overflow-x-auto shadow-md rounded-lg">
+        <!-- Table for displaying products -->
+        <table class="min-w-full bg-white border-collapse">
+          <thead>
+            <tr class="bg-blue-600 text-white text-left">
+              <th class="border border-gray-200 px-4 py-3">Image</th>
+              <th class="border border-gray-200 px-4 py-3">Title</th>
+              <th class="border border-gray-200 px-4 py-3">Price</th>
+              <th class="border border-gray-200 px-4 py-3">Discount</th>
+              <th class="border border-gray-200 px-4 py-3">Stock</th>
+              <th class="border border-gray-200 px-4 py-3">Badge</th>
+              <th class="border border-gray-200 px-4 py-3">Short Description</th>
+              <th class="border border-gray-200 px-4 py-3">Long Description</th>
+              <th class="border border-gray-200 px-4 py-3">Date Added</th>
+              <th class="border border-gray-200 px-4 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% katalogView.forEach(product => { %>
+            <tr class="hover:bg-gray-100 transition duration-200 product-row">
+              <td class="border px-4 py-3 text-center">
+                <img src="<%= product.image %>" alt="<%= product.title %>" class="w-16 h-16 object-cover rounded-md mx-auto" />
+              </td>
+              <td class="border px-4 py-3 font-semibold text-gray-800"><%= product.title %></td>
+              <td class="border px-4 py-3 text-green-600 font-semibold">
+                <% if (product.isDiscounted) { %>
+                <span class="line-through text-gray-500">Rp <%= product.price.toLocaleString('id-ID') %></span>
+                <br />
+                Rp <%= (product.price - (product.price * product.discountPercentage / 100)).toLocaleString('id-ID') %>
+                <% } else { %>
+                Rp <%= product.price.toLocaleString('id-ID') %>
+                <% } %>
+              </td>
+              <td class="border px-4 py-3">
+                <% if (product.isDiscounted) { %>
+                <span class="text-red-500 font-semibold">-<%= product.discountPercentage %>%</span>
+                <% } else { %>
+                <span class="text-gray-500">None</span>
+                <% } %>
+              </td>
+              <td class="border px-4 py-3">
+                <% if (product.isPreorder || product.stock === 0) { %>
+                <span class="text-orange-500 font-medium">Preorder</span>
+                <% } else { %>
+                <span class="text-green-500">Ready Stock : </span><%= product.stock %>
+                <% } %>
+              </td>
+              <td class="border px-4 py-3">
+                <% if (product.badge) { %>
+                <div class="bg-<%= 
+                  product.badge.type === 'baru' ? 'green' : 
+                  product.badge.type === 'eksklusif' ? 'purple' : 
+                  product.badge.type === 'terlaris' ? 'blue' : 
+                  '' 
+                %>-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  <%= product.badge.type %>
+                </div>
+                <% } else { %>
+                <span class="text-gray-500">-</span>
+                <% } %>
+              </td>
+              <td class="border px-4 py-3 text-sm text-gray-600 truncate max-w-xs">
+                <%= product.shortDescription %>
+              </td>
+              <td class="border px-4 py-3 text-sm text-gray-600 break-words max-w-xs">
+                <div class="long-description-container relative">
+                  <div class="long-description-wrap text-gray-600 max-w-xs overflow-hidden h-20">
+                    <%= product.longDescription %>
+                  </div>
+                </div>
+              </td>
+              <td class="border px-4 py-3">
+                <%= new Date(product.createdAt).toLocaleDateString('id-ID') %>
+              </td>
+              <td class="border px-4 py-3">
+                <button class="text-blue-600 hover:underline open-edit-modal" data-product-id="<%= product._id %>">Edit</button>
+                <button class="text-red-600 hover:underline ml-4 open-delete-modal" data-id="<%= product._id %>">Delete</button>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <div class="flex justify-center items-center mt-6 space-x-4">
+          <!-- Previous Button -->
+          <% if (currentPage > 1) { %>
+          <a href="?page=<%= currentPage - 1 %>&limit=10&search=<%= search %>&badgeFilter=<%= badgeFilter %>" class="text-blue-600 hover:underline font-semibold px-4 py-2 border border-blue-600 rounded-lg transition duration-200">
+            Previous
+          </a>
+          <% } %>
+
+          <!-- Page Numbers -->
+          <div class="flex space-x-2">
+            <% for (let i = 1; i <= totalPages; i++) { %>
+            <a href="?page=<%= i %>&limit=10&search=<%= search %>&badgeFilter=<%= badgeFilter %>" class="<%= currentPage === i ? 'text-white bg-blue-600 font-semibold' : 'text-blue-600 bg-white' %> hover:text-white hover:bg-blue-600 font-medium px-4 py-2 border border-blue-600 rounded-lg transition duration-200">
+              <%= i %>
+            </a>
+            <% } %>
+          </div>
+
+          <!-- Next Button -->
+          <% if (currentPage < totalPages) { %>
+          <a href="?page=<%= currentPage + 1 %>&limit=10&search=<%= search %>&badgeFilter=<%= badgeFilter %>" class="text-blue-600 hover:underline font-semibold px-4 py-2 border border-blue-600 rounded-lg transition duration-200">
+            Next
+          </a>
+          <% } %>
+        </div>
+
+
+      </div>
+
+      <!-- Tailwind CSS Customization -->
+      <style>
+        .long-description-container {
+          position: relative;
+        }
+
+        .long-description-wrap {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          height: 5rem;
+          /* Adjust the height to fit your needs */
+        }
+
+        /* When expanded, show the full description */
+        .long-description-container.expanded .long-description-wrap {
+          white-space: normal;
+          height: auto;
+        }
+
+        .long-description-wrap {
+          transition: height 0.3s ease, white-space 0.3s ease;
+        }
+      </style>
+
+      <!-- JavaScript -->
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          // Find all the product rows and attach click event listeners
+          const productRows = document.querySelectorAll('.product-row');
+
+          productRows.forEach(row => {
+            row.addEventListener('click', () => {
+              // Toggle expanded class on the row
+              const container = row.querySelector('.long-description-container');
+              container.classList.toggle('expanded');
+            });
+          });
+        });
+      </script>
+
+
+
+      <!-- Add Product Button -->
+      <div class="mt-6">
+        <button class="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition open-add-modal">
+          + Add New Product
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- add product -->
+  <div id="addProductModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center transition-opacity">
+    <div class="bg-white rounded-lg w-11/12 md:w-2/3 lg:w-1/2 p-6 shadow-lg">
+      <h2 class="text-2xl font-bold mb-4 text-gray-800">Add New Product</h2>
+      <form action="/admin/products/add" method="POST" enctype="multipart/form-data">
+        <!-- Product Image -->
+        <div>
+          <label for="image" class="block text-sm font-medium text-gray-700">Product Image</label>
+          <input type="file" id="image" name="image" class="block w-full border-gray-300 mt-2 focus:ring focus:ring-blue-300" required />
+        </div>
+
+        <!-- Product Title -->
+        <div>
+          <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+          <input type="text" id="title" name="title" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" required />
+        </div>
+
+        <!-- Short Description -->
+        <div>
+          <label for="shortDescription" class="block text-sm font-medium text-gray-700">Short Description</label>
+          <input type="text" id="shortDescription" name="shortDescription" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" required />
+        </div>
+
+        <!-- Long Description -->
+        <div>
+          <label for="longDescription" class="block text-sm font-medium text-gray-700">Long Description</label>
+          <textarea id="longDescription" name="longDescription" rows="4" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" required></textarea>
+        </div>
+
+        <!-- Price and Stock Section -->
+        <div class="flex space-x-4">
+          <!-- Price -->
+          <div class="flex-1">
+            <label for="price" class="block text-sm font-medium text-gray-700">Price</label>
+            <input type="number" id="price" name="price" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" required />
+          </div>
+
+          <!-- Stock (conditionally visible) -->
+          <div id="stockInput" class="flex-1">
+            <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
+            <input type="number" id="stock" name="stock" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" />
+          </div>
+        </div>
+
+        <!-- Discount Option -->
+        <div class="mt-4">
+          <label class="flex items-center">
+            <input type="checkbox" id="hasDiscount" name="hasDiscount" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-300" />
+            <span class="ml-2 text-sm font-medium text-gray-700">Discount</span>
+          </label>
+          <div id="discountInput" class="mt-2 hidden">
+            <label for="discountPercentage" class="block text-sm font-medium text-gray-700">Discount Percentage</label>
+            <input type="number" id="discountPercentage" name="discountPercentage" min="1" max="100" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" placeholder="Enter discount percentage (1-100%)" />
+          </div>
+        </div>
+
+        <!-- Badge Options -->
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Product Badge</label>
+          <div class="space-y-2">
+            <div>
+              <input type="radio" id="badgeNew" name="badge" value="baru" class="text-blue-600 border-gray-300 focus:ring focus:ring-blue-300" />
+              <label for="badgeNew" class="ml-2 text-gray-800">New</label>
+            </div>
+            <div>
+              <input type="radio" id="badgeExclusive" name="badge" value="eksklusif" class="text-blue-600 border-gray-300 focus:ring focus:ring-blue-300" />
+              <label for="badgeExclusive" class="ml-2 text-gray-800">Exclusive</label>
+            </div>
+            <div>
+              <input type="radio" id="badgeBestSeller" name="badge" value="terlaris" class="text-blue-600 border-gray-300 focus:ring focus:ring-blue-300" />
+              <label for="badgeBestSeller" class="ml-2 text-gray-800">Best Seller</label>
+            </div>
+          </div>
+
+          <!-- Reset Button for Badge -->
+          <button type="button" onclick="resetBadge()" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md">Reset Badge</button>
+
+          <script>
+            // Function to reset the badge radio buttons
+            function resetBadge() {
+              // Uncheck all radio buttons in the 'badge' group
+              const badgeRadios = document.querySelectorAll('input[name="badge"]');
+              badgeRadios.forEach(radio => radio.checked = false);
+
+              // Optionally, you could reset the hidden form field (if needed)
+              // document.getElementById('badge').value = ''; // if you're using a hidden input for badge value
+            }
+          </script>
+
+        </div>
+
+
+        <!-- Preorder Option -->
+        <div class="flex items-center mt-4">
+          <input type="checkbox" id="isPreorder" name="isPreorder" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-300" />
+          <label for="isPreorder" class="ml-2 text-sm font-medium text-gray-700">Preorder</label>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="mt-6 flex justify-end space-x-4">
+          <button type="button" class="close-modal px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition">Batal</button>
+          <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">Simpan</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- JavaScript to hide stock input when Preorder is checked -->
+  <script>
+    document.getElementById('isPreorder').addEventListener('change', function() {
+      const stockInput = document.getElementById('stockInput');
+      if (this.checked) {
+        stockInput.style.display = 'none'; // Hide stock input when Preorder is checked
+      } else {
+        stockInput.style.display = 'block'; // Show stock input when Preorder is unchecked
+      }
+    });
+
+    // Optional: Toggle discount input visibility
+    document.getElementById('hasDiscount').addEventListener('change', function() {
+      const discountInput = document.getElementById('discountInput');
+      if (this.checked) {
+        discountInput.style.display = 'block'; // Show discount input when Discount is checked
+      } else {
+        discountInput.style.display = 'none'; // Hide discount input when Discount is unchecked
+      }
+    });
+  </script>
+
+
+  <!-- Edit Product Modal -->
+  <div id="editProductModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center transition-opacity">
+    <div class="bg-white rounded-lg w-11/12 md:w-2/3 lg:w-1/2 p-6 shadow-lg">
+      <h2 class="text-2xl font-bold mb-4 text-gray-800">Edit Product</h2>
+      <form id="editProductForm" enctype="multipart/form-data">
+        <input type="hidden" id="editProductId" name="productId" />
+
+        <!-- Product Image -->
+        <div>
+          <label for="editImage" class="block text-sm font-medium text-gray-700">Product Image</label>
+          <input type="file" id="editImage" name="image" class="block w-full border-gray-300 mt-2 focus:ring focus:ring-blue-300" />
+        </div>
+
+        <!-- Product Title -->
+        <div>
+          <label for="editTitle" class="block text-sm font-medium text-gray-700">Title</label>
+          <input type="text" id="editTitle" name="title" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" required />
+        </div>
+
+        <!-- Short Description -->
+        <div>
+          <label for="editShortDescription" class="block text-sm font-medium text-gray-700">Short Description</label>
+          <input type="text" id="editShortDescription" name="shortDescription" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" required />
+        </div>
+
+        <!-- Long Description -->
+        <div>
+          <label for="editLongDescription" class="block text-sm font-medium text-gray-700">Long Description</label>
+          <textarea id="editLongDescription" name="longDescription" rows="4" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" required></textarea>
+        </div>
+
+        <!-- Price and Stock -->
+        <div class="flex space-x-4">
+          <div class="flex-1">
+            <label for="editPrice" class="block text-sm font-medium text-gray-700">Price</label>
+            <input type="number" id="editPrice" name="price" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" required />
+          </div>
+          <div id="editStockInput" class="flex-1">
+            <label for="editStock" class="block text-sm font-medium text-gray-700">Stock</label>
+            <input type="number" id="editStock" name="stock" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" />
+          </div>
+        </div>
+
+        <!-- Discount Option -->
+        <div class="mt-4">
+          <label class="flex items-center">
+            <input type="checkbox" id="editHasDiscount" name="hasDiscount" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-300" />
+            <span class="ml-2 text-sm font-medium text-gray-700">Discount</span>
+          </label>
+          <div id="editDiscountInput" class="mt-2 hidden">
+            <label for="editDiscountPercentage" class="block text-sm font-medium text-gray-700">Discount Percentage</label>
+            <input type="number" id="editDiscountPercentage" name="discountPercentage" min="1" max="100" class="block w-full border-gray-300 border mt-2 focus:ring focus:ring-blue-300" placeholder="Enter discount percentage (1-100%)" />
+          </div>
+        </div>
+
+        <!-- Badge Options -->
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Product Badge</label>
+          <div class="space-y-2">
+            <div>
+              <input type="radio" id="editBadgeNew" name="badge" value="baru" class="text-blue-600 border-gray-300 focus:ring focus:ring-blue-300" />
+              <label for="editBadgeNew" class="ml-2 text-gray-800">New</label>
+            </div>
+            <div>
+              <input type="radio" id="editBadgeExclusive" name="badge" value="eksklusif" class="text-blue-600 border-gray-300 focus:ring focus:ring-blue-300" />
+              <label for="editBadgeExclusive" class="ml-2 text-gray-800">Exclusive</label>
+            </div>
+            <div>
+              <input type="radio" id="editBadgeBestSeller" name="badge" value="terlaris" class="text-blue-600 border-gray-300 focus:ring focus:ring-blue-300" />
+              <label for="editBadgeBestSeller" class="ml-2 text-gray-800">Best Seller</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preorder Option -->
+        <div class="flex items-center mt-4">
+          <input type="checkbox" id="editIsPreorder" name="isPreorder" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-300" />
+          <label for="editIsPreorder" class="ml-2 text-sm font-medium text-gray-700">Preorder</label>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="mt-6 flex justify-end space-x-4">
+          <button type="button" id="cancelEdit" class="px-6 py-3 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition">Batal</button>
+          <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const editModal = document.getElementById("editProductModal");
+      const cancelEdit = document.getElementById("cancelEdit");
+      const editForm = document.getElementById("editProductForm");
+
+      // Handle preorder visibility toggle
+      document.getElementById("editIsPreorder").addEventListener("change", function() {
+        const stockInput = document.getElementById("editStockInput");
+        stockInput.style.display = this.checked ? "none" : "block";
+      });
+
+      // Handle discount visibility toggle
+      document.getElementById("editHasDiscount").addEventListener("change", function() {
+        const discountInput = document.getElementById("editDiscountInput");
+        discountInput.style.display = this.checked ? "block" : "none";
+      });
+
+      // Open modal and populate fields
+      document.querySelectorAll(".open-edit-modal").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const productId = button.getAttribute("data-product-id");
+
+          try {
+            const response = await fetch(`/admin/product/${productId}`);
+            if (!response.ok) throw new Error("Failed to fetch product data");
+
+            const product = await response.json();
+
+            // Populate form fields
+            document.getElementById("editProductId").value = product._id;
+            document.getElementById("editTitle").value = product.title;
+            document.getElementById("editShortDescription").value = product.shortDescription;
+            document.getElementById("editLongDescription").value = product.longDescription;
+            document.getElementById("editPrice").value = product.price;
+            document.getElementById("editStock").value = product.stock || "";
+            document.getElementById("editHasDiscount").checked = product.discountPercentage > 0;
+            document.getElementById("editDiscountPercentage").value = product.discountPercentage || "";
+
+            // Handle badge selection
+            if (product.badge) {
+              const badgeInput = document.querySelector(`input[name="badge"][value="${product.badge}"]`);
+              if (badgeInput) badgeInput.checked = true;
+            }
+
+            // Handle preorder logic
+            if (product.isPreorder || product.stock === 0 || product.stock === "") {
+              document.getElementById("editIsPreorder").checked = true;
+              document.getElementById("editStockInput").style.display = "none";
+            } else {
+              document.getElementById("editIsPreorder").checked = false;
+              document.getElementById("editStockInput").style.display = "block";
+            }
+
+            // Show modal
+            editModal.classList.remove("hidden");
+          } catch (error) {
+            console.error(error);
+            alert("Failed to load product details. Please try again.");
+          }
+        });
+      });
+
+      // Close modal
+      cancelEdit.addEventListener("click", () => {
+        editModal.classList.add("hidden");
+      });
+
+      // Submit form via PATCH
+      editForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(editForm);
+        const productId = formData.get("productId");
+
+        try {
+          const response = await fetch(`/admin/products/update/${productId}`, {
+            method: "PATCH",
+            body: formData,
+          });
+
+          if (response.ok) {
+            alert("Product updated successfully!");
+            location.reload();
+          } else {
+            const errorData = await response.json();
+            console.error("Error:", errorData);
+            alert("Failed to update product. Check the console for details.");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("An unexpected error occurred while updating the product.");
+        }
+      });
+    });
+  </script>
+
+
+
+
+  <!-- delete product -->
+  <!-- Modal Delete -->
+  <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white rounded-lg p-6 w-1/3">
+      <h3 class="text-xl font-semibold text-gray-700 mb-4">Are you sure you want to delete this product?</h3>
+      <div class="flex justify-end space-x-4">
+        <button id="confirmDeleteBtn" class="px-4 py-2 bg-red-600 text-white rounded-md">Hapus</button>
+        <button id="cancelDeleteBtn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md">Batal</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    // Open delete modal and set the product ID
+    // JavaScript untuk menangani modal delete
+    document.querySelectorAll('.open-delete-modal').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const productId = e.target.getAttribute('data-id');
+        const deleteModal = document.getElementById('deleteModal');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+        // Tampilkan modal
+        deleteModal.classList.remove('hidden');
+
+        // Konfirmasi penghapusan
+        confirmDeleteBtn.onclick = function() {
+          fetch(`/admin/products/delete/${productId}`, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`HTTP Error! status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then(data => {
+              if (data.success) {
+                deleteModal.classList.add('hidden'); // Tutup modal
+                e.target.closest('tr').remove(); // Hapus baris produk
+                alert(data.message || 'Product deleted successfully!');
+              } else {
+                alert('Failed to delete product! ' + (data.message || ''));
+              }
+            })
+            .catch(err => {
+              console.error("Error:", err.message);
+              alert(`Error occurred: ${err.message}`);
+            });
+        };
+
+        // Batalkan penghapusan
+        cancelDeleteBtn.onclick = function() {
+          deleteModal.classList.add('hidden');
+        };
+      });
+    });
+  </script>
+
+
+
+  <!-- Script -->
+  <script>
+    // Modal logic (open/close)
+    const openAddModal = document.querySelector('.open-add-modal');
+    const openEditModal = document.querySelectorAll('.open-edit-modal');
+    const openDeleteModal = document.querySelectorAll('.open-delete-modal');
+    const closeModalButtons = document.querySelectorAll('.close-modal');
+
+    const addProductModal = document.getElementById('addProductModal');
+    const editProductModal = document.getElementById('editProductModal');
+    const deleteProductModal = document.getElementById('deleteProductModal');
+
+    // Open Add Product Modal
+    openAddModal.addEventListener('click', () => {
+      addProductModal.classList.remove('hidden');
+      addProductModal.classList.add('flex');
+    });
+
+    // Open Delete Product Modal
+    openDeleteModal.forEach(button => {
+      button.addEventListener('click', () => {
+        deleteProductModal.classList.remove('hidden');
+        deleteProductModal.classList.add('flex');
+      });
+    });
+
+    // Close Modals
+    closeModalButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        addProductModal.classList.add('hidden');
+        editProductModal.classList.add('hidden');
+        deleteProductModal.classList.add('hidden');
+      });
+    });
+
+    // Toggle Discount Input
+    document.getElementById('hasDiscount').addEventListener('change', function() {
+      const discountInput = document.getElementById('discountInput');
+      if (this.checked) {
+        discountInput.classList.remove('hidden');
+      } else {
+        discountInput.classList.add('hidden');
+        document.getElementById('discountPercentage').value = ''; // Clear the input when unchecked
+      }
+    });
+
+    // Close modal
+    document.querySelectorAll('.close-modal').forEach(button => {
+      button.addEventListener('click', () => {
+        document.getElementById('editProductModal').classList.add('hidden');
+      });
+    });
+  </script>
+</body>
+
+</html>

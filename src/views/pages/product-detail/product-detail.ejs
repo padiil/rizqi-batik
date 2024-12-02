@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<%- include('../../partials/head.ejs') %>
+
+<body>
+  <!-- Navbar -->
+  <%- include('../../partials/navbar.ejs') %>
+
+  <div>
+    <!-- Banner -->
+    <%- include('../../partials/banner.ejs') %>
+
+    <div class="max-w-5xl mx-auto p-6">
+      <div class="flex flex-col md:flex-row">
+        <!-- Gambar Produk -->
+        <div class="md:w-1/2">
+          <img src="<%= product.image %>" alt="<%= product.title %>" class="w-full rounded-lg" />
+        </div>
+
+        <!-- Detail Produk -->
+        <div class="md:w-1/2 md:pl-8 mt-6 md:mt-0">
+          <h1 class="text-3xl font-bold"><%= product.title %></h1>
+          <p class="text-xl text-gray-500 mt-2">
+            Rp <%= product.price.toLocaleString('id-ID') %>
+          </p>
+          <% if (product.isDiscounted) { %>
+          <div class="text-red-500 font-bold">
+            Diskon: <%= product.discountPercentage %>% |
+            Harga Diskon: Rp
+            <%= (product.price - (product.price * product.discountPercentage / 100)).toLocaleString('id-ID') %>
+          </div>
+          <% } %>
+
+          <div class="mt-2 text-sm font-medium">
+            <% if (product.isPreorder) { %>
+            <span class="text-orange-500">Status: Preorder</span>
+            <% } else { %>
+            <span class="text-green-500">Status: Ready Stock</span> |
+            Stok: <%= product.stock %>
+            <% } %>
+          </div>
+
+          <p class="text-gray-700 mt-4"><%= product.shortDescription %></p>
+
+          <!-- Kontrol Jumlah -->
+          <div class="flex items-center mt-4">
+            <button id="decreaseButton" class="px-3 py-1 border rounded-lg text-gray-700">-</button>
+            <span id="quantity" class="px-3">1</span>
+            <button id="increaseButton" class="px-3 py-1 border rounded-lg text-gray-700">+</button>
+            <button id="addToCartButton" class="ml-4 px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-200">
+              Tambah ke Keranjang
+            </button>
+          </div>
+
+          <!-- Tombol Kembali -->
+          <button id="backButton" class="mt-4 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg" onclick="window.history.back()">
+            Kembali
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Deskripsi dan Ulasan -->
+      <div class="mt-8">
+        <div class="flex border-b">
+          <button class="px-4 py-2 text-lg font-bold text-gray-700 border-b-2 border-yellow-500">Deskripsi</button>
+          <button class="px-4 py-2 text-lg text-gray-700">Ulasan [5]</button>
+        </div>
+        <div class="mt-4">
+          <p class="text-gray-700"><%= product.longDescription || "Tidak ada deskripsi tambahan." %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <%- include('../../partials/footer.ejs') %>
+</body>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    let quantity = 1;
+    const quantityDisplay = document.getElementById("quantity");
+    const increaseButton = document.getElementById("increaseButton");
+    const decreaseButton = document.getElementById("decreaseButton");
+    const addToCartButton = document.getElementById("addToCartButton");
+
+    // Tombol tambah jumlah
+    increaseButton.addEventListener("click", function() {
+      quantity++;
+      quantityDisplay.innerText = quantity;
+    });
+
+    // Tombol kurangi jumlah
+    decreaseButton.addEventListener("click", function() {
+      if (quantity > 1) {
+        quantity--;
+        quantityDisplay.innerText = quantity;
+      }
+    });
+
+    // Tombol tambah ke keranjang
+    addToCartButton.addEventListener("click", function() {
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.push({
+        productName: "<%= product.title %>",
+        productPrice: "<%= product.price %>",
+        productImage: "<%= product.image %>",
+        quantity,
+        subtotal: <%= product.price %> * quantity,
+      });
+      localStorage.setItem("cart", JSON.stringify(cart));
+      alert("Produk telah ditambahkan ke keranjang!");
+    });
+  });
+</script>
+
+</html>
